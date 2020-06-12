@@ -1,0 +1,100 @@
+// Connects to a LIS3DH I2C accelerometer on the Adafruit Circuit Playground Express.
+package main
+
+import (
+	"image/color"
+	"machine"
+	"time"
+
+	"tinygo.org/x/drivers/lis3dh"
+	"tinygo.org/x/drivers/ws2812"
+)
+
+var i2c = machine.I2C1
+var setTime = false
+
+func main() {
+	i2c.Configure(machine.I2CConfig{SCL: machine.SCL1_PIN, SDA: machine.SDA1_PIN})
+
+	accel := lis3dh.New(i2c)
+	accel.Address = lis3dh.Address1 // address on the Circuit Playground Express
+	accel.Configure()
+	accel.SetRange(lis3dh.RANGE_2_G)
+
+	println(accel.Connected())
+
+	neo := machine.NEOPIXELS
+	neo.Configure(machine.PinConfig{Mode: machine.PinOutput})
+
+	//white := color.White
+	//black := color.Black
+	ws := ws2812.New(neo)
+	white_leds := make([]color.RGBA, 10)
+	black_leds := make([]color.RGBA, 10)
+	// rg := false
+
+	for i := range white_leds {
+		white_leds[i] = color.RGBA{R: 0xff, G: 0xff, B: 0xff}
+	}
+
+	for i := range black_leds {
+		black_leds[i] = color.RGBA{R: 0x00, G: 0x00, B: 0x00}
+	}
+
+	acceler_mem := make([]int32, 3)
+	for {
+		x, y, z, _ := accel.ReadAcceleration()
+		println("X:", x, "Y:", y, "Z:", z)
+
+		/*if acceler_mem[0]/x > 6 {
+			setTime = true
+		}
+		if acceler_mem[1]/y > 5 {
+			setTime = true
+		}
+		if acceler_mem[2]/z > 5 {
+			setTime = true
+		}*/
+
+		var diff = (acceler_mem[0] / x) + (acceler_mem[1] / y) + (acceler_mem[2] / z)
+
+		acceler_mem[0] = x
+		acceler_mem[1] = y
+		acceler_mem[2] = z
+
+		println("dff ", uint(diff))
+		if uint(diff) > 10 && uint(diff) < 1000 {
+			ws.WriteColors(white_leds)
+			time.Sleep(time.Millisecond * 1000) //time.Sleep(time.Minute)
+		} else {
+			ws.WriteColors(black_leds)
+		}
+		time.Sleep(time.Millisecond * 100)
+		// setTime = false
+	}
+}
+
+// rx, ry, rz := accel.ReadRawAcceleration()
+// println("X (raw):", rx, "Y (raw):", ry, "Z (raw):", rz)
+
+// rg = !rg
+/*for i := range leds {
+if !setTime {
+	leds[i] = color.RGBA{R: 0x00, G: 0x00, B: 0x00}
+} else {
+	leds[i] = color.RGBA{R: 0xff, G: 0xff, B: 0xff}
+}*/
+
+/*
+		rg = !rg
+		if rg {
+			// Alpha channel is not supported by WS2812 so we leave it out
+			//    Black       = Gray16{0}
+			// White       = Gray16{0xffff}
+			leds[i] = color.RGBA{R: 0x00, G: 0x00, B: 0x00}
+			//color.RGBA{R: 0x00, G: 0x00, B: 0x00}
+		} else {
+			leds[i] = color.RGBA{R: 0xff, G: 0xff, B: 0xff}
+			//color.RGBA{R: 0xff, G: 0x00, B: 0x00}
+		}
+}*/
