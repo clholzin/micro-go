@@ -17,6 +17,7 @@ var (
 func main() {
 
 	pin0.Configure(machine.PinConfig{Mode: machine.PinOutput})
+	buttonB.Configure(machine.PinConfig{Mode: machine.PinInput})
 
 	ledMagRow := machine.LED_ROW_1
 	ledMagRow.Configure(machine.PinConfig{Mode: machine.PinOutput})
@@ -53,8 +54,11 @@ func main() {
 	pin0.Low()
 	for {
 
-		if buttonB.Get() {
+		if !buttonB.Get() {
+			println("buttonB")
 			pin0.High()
+			time.Sleep(250 * time.Millisecond)
+			pin0.Low()
 			continue
 		}
 
