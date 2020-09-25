@@ -54,7 +54,7 @@ func main() {
 		println("dff ", uint(diff))
 		if uint(diff) > 5 {
 			ws.WriteColors(whiteleds)
-			time.Sleep(time.Second * 5) //time.Sleep(time.Minute)
+			time.Sleep(time.Minute * 10) //time.Sleep(time.Minute)
 		} else {
 			ws.WriteColors(blackleds)
 		}
