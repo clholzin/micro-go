@@ -11,15 +11,17 @@ import (
 const clock = machine.SPI0_SCK_PIN
 
 var (
-	tx      []byte
-	rx      []byte
-	numpix  int  = 144
-	x       byte = 0xef // brightness control E0 to FF
-	r       byte = 0xff // red value
-	g       byte = 0x0f // green value
-	b       byte = 0xab // blue value
-	buf          = []byte{x, b, g, r}
-	bufBlue      = []byte{x, 0x42, 0x87, 0xf5}
+	tx        []byte
+	rx        []byte
+	numpix    int  = 144
+	x         byte = 0xef // brightness control E0 to FF
+	r         byte = 0xff // red value
+	g         byte = 0x0f // green value
+	b         byte = 0xab // blue value
+	buf            = []byte{x, b, g, r}
+	bufOrange      = []byte{x, 0xd4, 0x51, 0x0b}
+	bufBlue        = []byte{x, 0x42, 0x87, 0xf5}
+	bufGreen       = []byte{x, 0x4e, 0xd4, 0x0b}
 )
 
 func main() {
@@ -40,11 +42,14 @@ func main() {
 
 	ledMagRow.High()
 	clock.High()
-	var toggle bool
+	var toggle int
 	for {
 		ledMag.Low()
+		toggle++
 		wleds := Leds(toggle)
-		toggle = !toggle
+		if toggle == 3 {
+			toggle = 0
+		}
 		//rleds := make([]byte, len(wleds))
 		clock.Low()
 		err := machine.SPI0.Tx(wleds, nil)
@@ -56,20 +61,26 @@ func main() {
 		clock.High()
 		//fmt.Printf("%v\n", rleds)
 		ledMag.High()
-		time.Sleep(200 * time.Millisecond)
+		time.Sleep(300 * time.Millisecond)
 
 	}
 }
 
-func Leds(toggle bool) (tx []byte) {
+func Leds(toggle int) (tx []byte) {
 	tx = append([]byte{}, []byte{0x00, 0x00, 0x00, 0x00}...)
 	for i := 0; i < numpix; i++ {
-		if toggle {
+		switch toggle {
+		case 1:
+			tx = append(tx, bufOrange...)
+			break
+		case 2:
 			tx = append(tx, bufBlue...)
-
-		} else {
+			break
+		case 3:
+			tx = append(tx, bufGreen...)
+			break
+		default:
 			tx = append(tx, buf...)
-
 		}
 	}
 	tx = append(tx, []byte{0xFF, 0xFF, 0xFF, 0xFF}...)
