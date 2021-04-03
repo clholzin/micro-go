@@ -63,9 +63,9 @@ func main() {
 						return
 					}
 					println(value[0], value[1], value[2])
-					ledColor[1] = value[0]
+					ledColor[1] = value[2]
 					ledColor[2] = value[1]
-					ledColor[3] = value[2]
+					ledColor[3] = value[0]
 					hasColorChange = true
 				},
 			},
