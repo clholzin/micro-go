@@ -55,7 +55,11 @@ func main() {
 				Value:  ledColor[:],
 				Flags:  bluetooth.CharacteristicReadPermission | bluetooth.CharacteristicWritePermission,
 				WriteEvent: func(client bluetooth.Connection, offset int, value []byte) {
+					println("receiving data")
 					if offset != 0 || len(value) != 3 {
+						for i := 0; i < len(value); i++ {
+							println(value[i])
+						}
 						return
 					}
 					println(value[0], value[1], value[2])
@@ -68,42 +72,28 @@ func main() {
 		},
 	}))
 
-	run := func() {
-		ledMag.Low()
-
-		ledMag.High()
-		wleds := append([]byte{}, []byte{0x00, 0x00, 0x00, 0x00}...)
-		for i := 0; i <= numpix; i++ {
-			wleds = append(wleds, ledColor...)
-		}
-		wleds = append(wleds, []byte{0xFF, 0xFF, 0xFF, 0xFF}...)
-		clock.Low()
-		err := machine.SPI0.Tx(wleds, nil)
-		if err != nil {
-			println(err)
-		}
-		clock.High()
-		ledMag.High()
-
-	}
-
 	ledMagRow.High()
 	ledMag.High()
 	clock.High()
 
-	run()
+	if err := run(clock); err != nil {
+		println(err)
+	}
 
 	for {
+		ledMag.Low()
 
 		if hasColorChange {
 			println("starting led write")
 			hasColorChange = false
-			run()
+			if err := run(clock); err != nil {
+				println(err)
+			}
 			println("finishing led write")
 		}
-
-		time.Sleep(100 * time.Millisecond)
-
+		//println("iter")
+		ledMag.High()
+		time.Sleep(500 * time.Millisecond)
 	}
 }
 
@@ -111,4 +101,19 @@ func must(action string, err error) {
 	if err != nil {
 		panic("failed to " + action + ": " + err.Error())
 	}
+}
+
+func run(clock machine.Pin) error {
+	wleds := append([]byte{}, []byte{0x00, 0x00, 0x00, 0x00}...)
+	for i := 0; i <= numpix; i++ {
+		wleds = append(wleds, ledColor...)
+	}
+	wleds = append(wleds, []byte{0xFF, 0xFF, 0xFF, 0xFF}...)
+	clock.Low()
+	err := machine.SPI0.Tx(wleds, nil)
+	if err != nil {
+		return err
+	}
+	clock.High()
+	return nil
 }
