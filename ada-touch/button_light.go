@@ -43,20 +43,6 @@ func main() {
 			ws.WriteColors(blackleds)
 		}
 
-		/*		if on {
-					if buttonB.Get() && on {
-						on = false
-					}
-					ws.WriteColors(whiteleds)
-					time.Sleep(time.Millisecond & 500)
-				} else {
-					if buttonA.Get() && !on {
-						on = true
-					}
-					ws.WriteColors(blackleds)
-					time.Sleep(time.Millisecond & 500)
-				}*/
-
 		time.Sleep(time.Millisecond * 50)
 	}
 }
