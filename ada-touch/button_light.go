@@ -8,9 +8,6 @@ import (
 	"tinygo.org/x/drivers/ws2812"
 )
 
-var i2c = machine.I2C1
-var setTime = false
-
 const (
 	buttonA = machine.BUTTONA
 	buttonB = machine.BUTTONB
@@ -21,8 +18,8 @@ func main() {
 	neo := machine.NEOPIXELS
 	neo.Configure(machine.PinConfig{Mode: machine.PinOutput})
 
-	buttonA.Configure(machine.PinConfig{Mode: machine.PinInput})
-	buttonB.Configure(machine.PinConfig{Mode: machine.PinInput})
+	buttonA.Configure(machine.PinConfig{Mode: machine.PinInputPulldown})
+	buttonB.Configure(machine.PinConfig{Mode: machine.PinInputPulldown})
 
 	ws := ws2812.New(neo)
 	whiteleds := make([]color.RGBA, 10)
@@ -36,13 +33,30 @@ func main() {
 		blackleds[i] = color.RGBA{R: 0x00, G: 0x00, B: 0x00}
 	}
 
+	//var on bool
+
 	for {
+
 		if buttonA.Get() {
 			ws.WriteColors(whiteleds)
-		}
-		if buttonB.Get() {
+		} else if buttonB.Get() {
 			ws.WriteColors(blackleds)
 		}
-		time.Sleep(time.Millisecond * 100)
+
+		/*		if on {
+					if buttonB.Get() && on {
+						on = false
+					}
+					ws.WriteColors(whiteleds)
+					time.Sleep(time.Millisecond & 500)
+				} else {
+					if buttonA.Get() && !on {
+						on = true
+					}
+					ws.WriteColors(blackleds)
+					time.Sleep(time.Millisecond & 500)
+				}*/
+
+		time.Sleep(time.Millisecond * 50)
 	}
 }
