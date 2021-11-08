@@ -11,8 +11,8 @@ var adapter = bluetooth.DefaultAdapter
 
 var (
 	hasColorChange bool = false
-	brightness     byte = 0xE6 // brightness control E0 to FF
-	ledColor            = []byte{brightness, 0xe1, 0xeb, 0x34}
+	brightness     byte = 0xfa // brightness control E0 to FF
+	ledColor            = []byte{brightness, 0xff, 0xff, 0xff}
 	numpix         int  = 145
 	serviceUUID         = [16]byte{0xa0, 0xb4, 0x00, 0x01, 0x92, 0x6d, 0x4d, 0x61, 0x98, 0xdf, 0x8c, 0x5c, 0x62, 0xee, 0x53, 0xb3}
 	charUUID            = [16]byte{0xa0, 0xb4, 0x00, 0x02, 0x92, 0x6d, 0x4d, 0x61, 0x98, 0xdf, 0x8c, 0x5c, 0x62, 0xee, 0x53, 0xb3}
@@ -62,6 +62,9 @@ func main() {
 						}
 						return
 					}
+					if len(value) == 4 {
+						ledColor[0] = value[3]
+					}
 					println(value[0], value[1], value[2])
 					ledColor[1] = value[2]
 					ledColor[2] = value[1]
@@ -84,12 +87,12 @@ func main() {
 		ledMag.Low()
 
 		if hasColorChange {
-			println("starting led write")
+			// println("starting led write")
 			hasColorChange = false
 			if err := run(clock); err != nil {
 				println(err)
 			}
-			println("finishing led write")
+			// println("finishing led write")
 		}
 		//println("iter")
 		ledMag.High()
